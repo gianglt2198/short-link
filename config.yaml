@@ -1,0 +1,6 @@
+server:
+  port: "8080"
+  base_url: "http://localhost:8080"
+
+database:
+  url: "postgres://shortlink:shortlink@localhost:5432/shortlink?sslmode=disable"
