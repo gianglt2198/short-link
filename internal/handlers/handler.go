@@ -5,10 +5,18 @@ import (
 	"go.uber.org/fx"
 )
 
-func RegisterRoutes(app *fiber.App, lh *LinkHandler) {
-	app.Post("/encode", lh.Encode)
-	app.Post("/decode", lh.Decode)
-	app.Get("/:code", lh.Redirect)
+type Handler struct {
+	link *LinkHandler
+}
+
+func NewHandler(link *LinkHandler) *Handler {
+	return &Handler{link: link}
+}
+
+func RegisterRoutes(app *fiber.App, h *Handler) {
+	app.Post("/encode", h.link.Encode)
+	app.Post("/decode", h.link.Decode)
+	app.Get("/:code", h.link.Redirect)
 }
 
 func NewApp() *fiber.App {
@@ -18,5 +26,6 @@ func NewApp() *fiber.App {
 var Module = fx.Options(
 	fx.Provide(NewApp),
 	fx.Provide(NewLinkHandler),
+	fx.Provide(NewHandler),
 	fx.Invoke(RegisterRoutes),
 )
