@@ -1,0 +1,15 @@
+with-expecter: true
+issue-845-fix: true
+packages:
+  github.com/gianglt1/short-link/internal/repositories:
+    interfaces:
+      LinkRepository:
+        config:
+          dir: "internal/repositories/mocks"
+          outpkg: "mocks"
+  github.com/gianglt1/short-link/internal/helpers:
+    interfaces:
+      CodeGenerator:
+        config:
+          dir: "internal/helpers/mocks"
+          outpkg: "mocks"
