@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"github.com/bwmarrin/snowflake"
+	"github.com/gianglt1/short-link/internal/common"
 )
 
 // CodeGenerator produces short codes for URL shortening.
@@ -10,7 +11,6 @@ type CodeGenerator interface {
 }
 
 const (
-	alphabet  = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	codeSpace = uint64(62 * 62 * 62 * 62 * 62 * 62) // 62^6 =~ 56.8 B
 	codeLen   = 6
 )
@@ -19,7 +19,7 @@ const (
 func Base62Encode(n uint64) string {
 	buf := make([]byte, codeLen)
 	for i := codeLen - 1; i >= 0; i-- {
-		buf[i] = alphabet[n%62]
+		buf[i] = common.ALPHABET[n%62]
 		n /= 62
 	}
 	return string(buf)

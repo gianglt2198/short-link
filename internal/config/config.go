@@ -16,8 +16,10 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port    string `mapstructure:"port"`
-	BaseURL string `mapstructure:"base_url"`
+	Name        string `mapstructure:"name"`
+	Port        string `mapstructure:"port"`
+	BaseURL     string `mapstructure:"base_url"`
+	Environment string `mapstructure:"environment"`
 }
 
 type DatabaseConfig struct {

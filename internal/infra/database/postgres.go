@@ -9,22 +9,35 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/tracelog"
 	"go.uber.org/fx"
 
 	"github.com/gianglt1/short-link/internal/config"
+	"github.com/gianglt1/short-link/internal/infra/logging"
 )
 
 type PoolParams struct {
 	fx.In
 
 	Config    *config.Config
+	Logger    *logging.Logger
 	Lifecycle fx.Lifecycle
 }
 
 func NewPool(p PoolParams) (*pgxpool.Pool, error) {
-	pool, err := pgxpool.New(context.Background(), p.Config.Database.URL)
+	cfg, err := pgxpool.ParseConfig(p.Config.Database.URL)
 	if err != nil {
-		return nil, fmt.Errorf("pgxpool.New: %w", err)
+		return nil, fmt.Errorf("pgxpool.ParseConfig: %w", err)
+	}
+
+	cfg.ConnConfig.Tracer = &tracelog.TraceLog{
+		Logger:   p.Logger,
+		LogLevel: tracelog.LogLevelDebug,
+	}
+
+	pool, err := pgxpool.NewWithConfig(context.Background(), cfg)
+	if err != nil {
+		return nil, fmt.Errorf("pgxpool.NewWithConfig: %w", err)
 	}
 
 	if err := runMigrations(p.Config.Database.URL); err != nil {

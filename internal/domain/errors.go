@@ -7,4 +7,6 @@ var (
 	ErrInvalidURL = errors.New("invalid URL")
 	// ErrLinkNotFound is returned when no link exists for a given code or URL.
 	ErrLinkNotFound = errors.New("link not found")
+	// ErrCodeCollision is returned when the generated code already exists in storage.
+	ErrCodeCollision = errors.New("code collision")
 )

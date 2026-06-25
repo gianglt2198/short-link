@@ -5,11 +5,13 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
 
-	"github.com/gianglt1/short-link/infra/database"
 	"github.com/gianglt1/short-link/internal/config"
 	"github.com/gianglt1/short-link/internal/handlers"
 	"github.com/gianglt1/short-link/internal/helpers"
+	"github.com/gianglt1/short-link/internal/infra/database"
+	"github.com/gianglt1/short-link/internal/infra/logging"
 	"github.com/gianglt1/short-link/internal/repositories"
 	"github.com/gianglt1/short-link/internal/services"
 )
@@ -37,11 +39,15 @@ func startServer(p serverParams) {
 func main() {
 	fx.New(
 		config.Module,
+		logging.Module,
 		database.Module,     // *pgxpool.Pool (+ migrations, close hook)
-		repositories.Module, // PgLinkRepository as repositories.LinkRepository
-		helpers.Module,      // SnowflakeCodeGenerator as domain.CodeGenerator
+		repositories.Module, // repositories.LinkRepository
+		helpers.Module,      // domain.CodeGenerator
 		services.Module,
 		handlers.Module, // fiber.App + handlers + RegisterRoutes
+		fx.WithLogger(func(logger *logging.Logger) fxevent.Logger {
+			return logger.Fx()
+		}),
 		fx.Invoke(startServer),
 	).Run()
 }

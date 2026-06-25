@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 
+	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/fx"
 
@@ -20,7 +22,6 @@ type (
 		Save(ctx context.Context, link domain.Link) error
 		FindByCode(ctx context.Context, code string) (domain.Link, error)
 		FindByURL(ctx context.Context, url string) (domain.Link, error)
-		CodeExists(ctx context.Context, code string) (bool, error)
 	}
 )
 
@@ -36,10 +37,17 @@ func NewPgLinkRepository(pool *pgxpool.Pool) PgLinkRepositoryResult {
 
 func (r *PgLinkRepository) Save(ctx context.Context, link domain.Link) error {
 	_, err := r.pool.Exec(ctx,
-		`INSERT INTO links (code, original_url) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+		`INSERT INTO links (code, original_url) VALUES ($1, $2)`,
 		link.Code, link.OriginalURL,
 	)
-	return err
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) {
+			return domain.ErrCodeCollision
+		}
+		return err
+	}
+	return nil
 }
 
 func (r *PgLinkRepository) FindByCode(ctx context.Context, code string) (domain.Link, error) {
@@ -70,13 +78,4 @@ func (r *PgLinkRepository) FindByURL(ctx context.Context, originalURL string) (d
 		return domain.Link{}, err
 	}
 	return link, nil
-}
-
-func (r *PgLinkRepository) CodeExists(ctx context.Context, code string) (bool, error) {
-	var exists bool
-	err := r.pool.QueryRow(ctx,
-		`SELECT EXISTS(SELECT 1 FROM links WHERE code = $1)`,
-		code,
-	).Scan(&exists)
-	return exists, err
 }
