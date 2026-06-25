@@ -1,6 +1,7 @@
 .PHONY: run build test test-cover migrate-up migrate-down migrate-add db-up db-down clean
 
 DATABASE_URL ?= postgres://shortlink:shortlink@localhost:5432/shortlink?sslmode=disable
+CACHE__REDIS__ADDR ?= localhost:6379
 
 run:
 	go run ./cmd/server
@@ -13,7 +14,7 @@ test:
 
 test-cover:
 	go test -coverprofile=coverage.out \
-		-coverpkg=./internal/handlers/...,./internal/services/...,./internal/utils/...,./internal/helpers/... \
+		-coverpkg=./internal/handlers/...,./internal/services/...,./internal/utils/...,./internal/helpers/...,./internal/infra/cache/... \
 		./...
 	grep -v "/mocks/" coverage.out > coverage_filtered.out
 	go tool cover -html=coverage_filtered.out

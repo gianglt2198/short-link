@@ -4,12 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
+	"github.com/gianglt1/short-link/internal/config"
 	"github.com/gianglt1/short-link/internal/domain"
 	"github.com/gianglt1/short-link/internal/helpers"
+	"github.com/gianglt1/short-link/internal/infra/cache"
 	"github.com/gianglt1/short-link/internal/infra/logging"
 	"github.com/gianglt1/short-link/internal/repositories"
 	"github.com/gianglt1/short-link/internal/utils"
@@ -19,9 +22,12 @@ const maxRetries = 3
 
 type (
 	shortenerService struct {
+		cfg *config.Config
+
 		repo   repositories.LinkRepository
 		gen    helpers.CodeGenerator
 		logger *logging.Logger
+		cache  cache.Cache
 	}
 
 	ShortenerService interface {
@@ -36,10 +42,18 @@ type ShortenerServiceParams struct {
 	Repo   repositories.LinkRepository
 	Gen    helpers.CodeGenerator
 	Logger *logging.Logger
+	Cache  cache.Cache
+	Cfg    *config.Config
 }
 
 func NewShortenerService(params ShortenerServiceParams) ShortenerService {
-	return &shortenerService{repo: params.Repo, gen: params.Gen, logger: params.Logger}
+	return &shortenerService{
+		cfg:    params.Cfg,
+		repo:   params.Repo,
+		gen:    params.Gen,
+		logger: params.Logger,
+		cache:  params.Cache,
+	}
 }
 
 func (s *shortenerService) Encode(ctx context.Context, rawURL string) (domain.Link, error) {
@@ -73,5 +87,22 @@ func (s *shortenerService) Encode(ctx context.Context, rawURL string) (domain.Li
 }
 
 func (s *shortenerService) Decode(ctx context.Context, code string) (domain.Link, error) {
-	return s.repo.FindByCode(ctx, code)
+	if s.cache != nil {
+		if val, err := s.cache.Get(ctx, code); err == nil && val != nil {
+			return domain.Link{Code: code, OriginalURL: string(val)}, nil
+		}
+	}
+
+	link, err := s.repo.FindByCode(ctx, code)
+	if err != nil {
+		return domain.Link{}, err
+	}
+
+	if s.cache != nil {
+		if err := s.cache.Set(ctx, code, []byte(link.OriginalURL), time.Duration(s.cfg.Cache.TTL)*time.Second); err != nil {
+			s.logger.GetWrappedLogger(ctx).Warn("decode: cache set failed", zap.String("code", code), zap.Error(err))
+		}
+	}
+
+	return link, nil
 }

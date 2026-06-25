@@ -13,6 +13,7 @@ import (
 type Config struct {
 	Server   ServerConfig   `mapstructure:"server"`
 	Database DatabaseConfig `mapstructure:"database"`
+	Cache    CacheConfig    `mapstructure:"cache"`
 }
 
 type ServerConfig struct {
@@ -24,6 +25,24 @@ type ServerConfig struct {
 
 type DatabaseConfig struct {
 	URL string `mapstructure:"url"`
+}
+
+type CacheConfig struct {
+	Enabled bool        `mapstructure:"enabled"`
+	Type    string      `mapstructure:"type"`
+	TTL     int         `mapstructure:"ttl"` // seconds
+	Local   LocalConfig `mapstructure:"local"`
+	Redis   RedisConfig `mapstructure:"redis"`
+}
+
+type LocalConfig struct {
+	Size int `mapstructure:"size"`
+}
+
+type RedisConfig struct {
+	Addr     string `mapstructure:"addr"`
+	Password string `mapstructure:"password"`
+	DB       int    `mapstructure:"db"`
 }
 
 func NewConfig() (*Config, error) {

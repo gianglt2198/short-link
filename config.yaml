@@ -6,3 +6,15 @@ server:
 
 database:
   url: "postgres://shortlink:shortlink@localhost:5432/shortlink?sslmode=disable"
+
+cache:
+  enabled: false
+  type: "local"
+  ttl: 3600
+  local:
+    size: 1000
+  redis:
+    addr: "localhost:6379"
+    password: ""
+    db: 0
+    max_memory: "100mb"

@@ -10,6 +10,7 @@ import (
 	"github.com/gianglt1/short-link/internal/config"
 	"github.com/gianglt1/short-link/internal/handlers"
 	"github.com/gianglt1/short-link/internal/helpers"
+	"github.com/gianglt1/short-link/internal/infra/cache"
 	"github.com/gianglt1/short-link/internal/infra/database"
 	"github.com/gianglt1/short-link/internal/infra/logging"
 	"github.com/gianglt1/short-link/internal/repositories"
@@ -43,6 +44,7 @@ func main() {
 		database.Module,     // *pgxpool.Pool (+ migrations, close hook)
 		repositories.Module, // repositories.LinkRepository
 		helpers.Module,      // domain.CodeGenerator
+		cache.Module,
 		services.Module,
 		handlers.Module, // fiber.App + handlers + RegisterRoutes
 		fx.WithLogger(func(logger *logging.Logger) fxevent.Logger {
