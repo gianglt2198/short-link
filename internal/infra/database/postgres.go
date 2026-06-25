@@ -35,6 +35,14 @@ func NewPool(p PoolParams) (*pgxpool.Pool, error) {
 		LogLevel: tracelog.LogLevelDebug,
 	}
 
+	poolCfg := p.Config.Database.Pool
+	if poolCfg.MaxConns > 0 {
+		cfg.MaxConns = poolCfg.MaxConns
+	}
+	if poolCfg.MinConns > 0 {
+		cfg.MinConns = poolCfg.MinConns
+	}
+
 	pool, err := pgxpool.NewWithConfig(context.Background(), cfg)
 	if err != nil {
 		return nil, fmt.Errorf("pgxpool.NewWithConfig: %w", err)

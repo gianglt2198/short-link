@@ -24,7 +24,13 @@ type ServerConfig struct {
 }
 
 type DatabaseConfig struct {
-	URL string `mapstructure:"url"`
+	URL  string     `mapstructure:"url"`
+	Pool PoolConfig `mapstructure:"pool"`
+}
+
+type PoolConfig struct {
+	MaxConns int32 `mapstructure:"max_conns"`
+	MinConns int32 `mapstructure:"min_conns"`
 }
 
 type CacheConfig struct {

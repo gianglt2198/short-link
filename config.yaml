@@ -6,6 +6,9 @@ server:
 
 database:
   url: "postgres://shortlink:shortlink@localhost:5432/shortlink?sslmode=disable"
+  pool:
+    max_conns: 20
+    min_conns: 2
 
 cache:
   enabled: false

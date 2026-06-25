@@ -8,6 +8,7 @@ import (
 
 	"go.uber.org/fx"
 	"go.uber.org/zap"
+	"golang.org/x/sync/singleflight"
 
 	"github.com/gianglt1/short-link/internal/config"
 	"github.com/gianglt1/short-link/internal/domain"
@@ -28,6 +29,7 @@ type (
 		gen    helpers.CodeGenerator
 		logger *logging.Logger
 		cache  cache.Cache
+		sfg    singleflight.Group
 	}
 
 	ShortenerService interface {
@@ -61,29 +63,36 @@ func (s *shortenerService) Encode(ctx context.Context, rawURL string) (domain.Li
 		return domain.Link{}, err
 	}
 
-	if link, err := s.repo.FindByURL(ctx, rawURL); err == nil {
-		return link, nil
-	} else if !errors.Is(err, domain.ErrLinkNotFound) {
+	val, err, _ := s.sfg.Do(rawURL, func() (any, error) {
+		if link, err := s.repo.FindByURL(ctx, rawURL); err == nil {
+			return link, nil
+		} else if !errors.Is(err, domain.ErrLinkNotFound) {
+			return domain.Link{}, err
+		}
+
+		for i := 0; i < maxRetries; i++ {
+			code, err := s.gen.Generate()
+			if err != nil {
+				return domain.Link{}, fmt.Errorf("generate code: %w", err)
+			}
+			link := domain.Link{Code: code, OriginalURL: rawURL}
+			if err := s.repo.Save(ctx, link); err != nil {
+				if errors.Is(err, domain.ErrCodeCollision) {
+					s.logger.GetWrappedLogger(ctx).Warn("encode: code collision, retrying", zap.String("code", code), zap.Int("attempt", i+1))
+					continue
+				}
+				return domain.Link{}, err
+			}
+			return link, nil
+		}
+
+		return domain.Link{}, fmt.Errorf("failed to generate unique code after %d retries", maxRetries)
+	})
+	if err != nil {
 		return domain.Link{}, err
 	}
 
-	for i := 0; i < maxRetries; i++ {
-		code, err := s.gen.Generate()
-		if err != nil {
-			return domain.Link{}, fmt.Errorf("generate code: %w", err)
-		}
-		link := domain.Link{Code: code, OriginalURL: rawURL}
-		if err := s.repo.Save(ctx, link); err != nil {
-			if errors.Is(err, domain.ErrCodeCollision) {
-				s.logger.GetWrappedLogger(ctx).Warn("encode: code collision, retrying", zap.String("code", code), zap.Int("attempt", i+1))
-				continue
-			}
-			return domain.Link{}, err
-		}
-		return link, nil
-	}
-
-	return domain.Link{}, fmt.Errorf("failed to generate unique code after %d retries", maxRetries)
+	return val.(domain.Link), nil
 }
 
 func (s *shortenerService) Decode(ctx context.Context, code string) (domain.Link, error) {
@@ -93,16 +102,21 @@ func (s *shortenerService) Decode(ctx context.Context, code string) (domain.Link
 		}
 	}
 
-	link, err := s.repo.FindByCode(ctx, code)
+	val, err, _ := s.sfg.Do(code, func() (any, error) {
+		link, err := s.repo.FindByCode(ctx, code)
+		if err != nil {
+			return nil, err
+		}
+		if s.cache != nil {
+			if err := s.cache.Set(ctx, code, []byte(link.OriginalURL), time.Duration(s.cfg.Cache.TTL)*time.Second); err != nil {
+				s.logger.GetWrappedLogger(ctx).Warn("decode: cache set failed", zap.String("code", code), zap.Error(err))
+			}
+		}
+		return link, nil
+	})
 	if err != nil {
 		return domain.Link{}, err
 	}
 
-	if s.cache != nil {
-		if err := s.cache.Set(ctx, code, []byte(link.OriginalURL), time.Duration(s.cfg.Cache.TTL)*time.Second); err != nil {
-			s.logger.GetWrappedLogger(ctx).Warn("decode: cache set failed", zap.String("code", code), zap.Error(err))
-		}
-	}
-
-	return link, nil
+	return val.(domain.Link), nil
 }
