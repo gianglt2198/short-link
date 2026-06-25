@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>short.link</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <main class="page">
+    <div class="card">
+
+      <div class="logo" aria-label="short.link">
+        <div class="logo-dots" aria-hidden="true">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+          <span class="dot dot-blue"></span>
+        </div>
+        <span class="logo-text">short.link</span>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="Mode">
+        <button id="tab-shorten" class="tab active" role="tab" aria-selected="true">Shorten</button>
+        <button id="tab-expand"  class="tab"        role="tab" aria-selected="false">Expand</button>
+      </div>
+
+      <form id="form-shorten"
+            hx-post="/shorten"
+            hx-target="#result"
+            hx-swap="innerHTML"
+            autocomplete="off">
+        <div class="input-wrap">
+          <input id="input-shorten"
+                 type="url"
+                 name="url"
+                 placeholder="Paste a long URL…"
+                 aria-label="Long URL to shorten">
+        </div>
+        <button type="submit" class="btn-primary">Shorten</button>
+      </form>
+
+      <form id="form-expand"
+            hx-post="/expand"
+            hx-target="#result"
+            hx-swap="innerHTML"
+            autocomplete="off"
+            hidden>
+        <div class="input-wrap">
+          <input id="input-expand"
+                 type="text"
+                 name="short_url"
+                 placeholder="Paste a short URL or code…"
+                 aria-label="Short URL or code to expand">
+        </div>
+        <button type="submit" class="btn-primary">Expand</button>
+      </form>
+
+      <div id="loader" role="status" aria-label="Loading">
+        <span class="loader-dot ld-red"></span>
+        <span class="loader-dot ld-yellow"></span>
+        <span class="loader-dot ld-green"></span>
+        <span class="loader-dot ld-blue"></span>
+      </div>
+
+      <div id="result" aria-live="polite"></div>
+
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js" crossorigin="anonymous"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

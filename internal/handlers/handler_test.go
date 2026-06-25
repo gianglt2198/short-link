@@ -26,8 +26,10 @@ func newTestApp(t *testing.T, repo *repomocks.LinkRepository, gen *helpermocks.C
 		Repo: repo,
 		Gen:  gen,
 	})
-	lh := handlers.NewLinkHandler(handlers.LinkHandlerParams{Svc: svc, Cfg: cfg, Logger: logging.NewNoopLogger()})
-	h := handlers.NewHandler(lh)
+	log := logging.NewNoopLogger()
+	lh := handlers.NewLinkHandler(handlers.LinkHandlerParams{Svc: svc, Cfg: cfg, Logger: log})
+	ph := handlers.NewPageHandler(handlers.PageHandlerParams{Svc: svc, Cfg: cfg, Logger: log})
+	h := handlers.NewHandler(lh, ph)
 	app := handlers.NewApp(logging.NewNoopLogger())
 	handlers.RegisterRoutes(app, h)
 	return app
