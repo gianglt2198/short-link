@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"github.com/gianglt1/short-link/internal/infra/logging"
+	"github.com/gianglt1/short-link/internal/middlewares"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/fx"
 )
@@ -19,8 +21,11 @@ func RegisterRoutes(app *fiber.App, h *Handler) {
 	app.Get("/:code", h.link.Redirect)
 }
 
-func NewApp() *fiber.App {
-	return fiber.New(fiber.Config{BodyLimit: 4 * 1024})
+func NewApp(log *logging.Logger) *fiber.App {
+	app := fiber.New(fiber.Config{BodyLimit: 4 * 1024})
+	app.Use(middlewares.RequestIDMiddleware)
+	app.Use(middlewares.LoggerMiddleware(log))
+	return app
 }
 
 var Module = fx.Options(
