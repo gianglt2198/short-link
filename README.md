@@ -42,6 +42,9 @@ https://github.com/user-attachments/assets/bde17b38-a48d-478a-b93b-37dc497c88b8
     - [Collision handling](#collision-handling)
     - [Horizontal scaling](#horizontal-scaling)
     - [Code space exhaustion](#code-space-exhaustion)
+  - [My Tasks and AI Assignments](#my-tasks-and-ai-assignments)
+    - [My Tasks](#my-tasks)
+    - [AI Assignments](#ai-assignments)
 
 ---
 
@@ -302,3 +305,35 @@ Because multiple Snowflake IDs can map to the same value after `mod 62^6`, colli
 ### Code space exhaustion
 
 6 characters of base62 gives **56,800,235,584** unique codes. At 1,000 new URLs per second, the space lasts ~1,800 years. If longer codes are ever needed, increase `codeLen` to 7 (3.5 trillion codes) with a single constant change — no schema migration required since the column is `VARCHAR(6)` padded to the declared length.
+
+---
+
+## My Tasks and AI Assignments
+
+That's a fair that I assign some tasks for AI to help work on this faster and more security.
+
+### My Tasks
+
+- Design structure of project 
+- Plan step by step the project 
+- Pick up teck stack for project
+- Set up the source from **Config**, **Handler**, **Infra**, **Reposibities**, **Services**, **Utils**, **Logging**, .
+- Implement the core functions such as `/encode` and `/decode` and `/redirect`
+- Design Data Model and Migration.
+- Plan & apply solutions for the problems such as thundering-herd (singleflight) and cache and URL validation. 
+- Write STEPS.md mannually to share my thoughts.
+
+### AI Assignments
+
+I have a collaboration with AI some aspects in this project
+
+- Generate testcase and all tests.
+- Using mockery to mock up repositories and code generator helpers.
+- Generate UI and page handler to interact with logic easily.
+- Improve Security for UI and for Endpoints like CSP, XSS, SSRF Headers. 
+- Add config.yaml instead of written by hand.
+- Generate Dockerfile and docker compose 
+- Build Makefile
+- Write README.md based on STEPS.md
+
+That's some tedious scopes, I think I can hand over AI work for me. 
