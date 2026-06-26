@@ -4,18 +4,44 @@ A URL shortening service built in Go. Encodes long URLs into 6-character short c
 
 ---
 
+## DEMO
+
+Check out [LINK DEMO](https://shortlink.gliam.me) for reaching the web.
+
+![website](docs/website.png)
+
+---
+
 ## Table of Contents
 
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [How to Run](#how-to-run)
-  - [Prerequisites](#prerequisites)
-  - [Option A: Docker Compose (recommended)](#option-a-docker-compose-recommended)
-  - [Option B: Run locally](#option-b-run-locally)
-- [API Reference](#api-reference)
-- [Running Tests](#running-tests)
-- [Security Considerations](#security-considerations)
-- [Scalability & Collision Strategy](#scalability--collision-strategy)
+- [ShortLink](#shortlink)
+  - [DEMO](#demo)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Tech Stack](#tech-stack)
+  - [How to Run](#how-to-run)
+    - [Prerequisites](#prerequisites)
+    - [Option A: Docker Compose (recommended)](#option-a-docker-compose-recommended)
+    - [Option B: Run locally](#option-b-run-locally)
+  - [API Reference](#api-reference)
+    - [POST /encode](#post-encode)
+    - [POST /decode](#post-decode)
+    - [GET /:code](#get-code)
+  - [Running Tests](#running-tests)
+    - [Load tests (k6)](#load-tests-k6)
+  - [Security Considerations](#security-considerations)
+    - [1. URL injection / SSRF](#1-url-injection--ssrf)
+    - [2. Redirect abuse (open redirector)](#2-redirect-abuse-open-redirector)
+    - [3. Enumeration / scraping](#3-enumeration--scraping)
+    - [4. Denial of Service](#4-denial-of-service)
+    - [5. SQL injection](#5-sql-injection)
+    - [6. Logging sensitive data](#6-logging-sensitive-data)
+    - [7. Header / host spoofing](#7-header--host-spoofing)
+  - [Scalability \& Collision Strategy](#scalability--collision-strategy)
+    - [Short code generation](#short-code-generation)
+    - [Collision handling](#collision-handling)
+    - [Horizontal scaling](#horizontal-scaling)
+    - [Code space exhaustion](#code-space-exhaustion)
 
 ---
 
@@ -32,17 +58,17 @@ A URL shortening service built in Go. Encodes long URLs into 6-character short c
 
 ## Tech Stack
 
-| Concern        | Choice                          |
-| -------------- | ------------------------------- |
-| Language       | Go 1.22+                        |
-| HTTP           | Fiber v2                        |
-| DI             | Uber fx                         |
-| Database       | PostgreSQL 16 (pgx/v5 + pgxpool)|
-| Migrations     | golang-migrate                  |
-| Config         | spf13/viper + joho/godotenv     |
-| Short code     | Snowflake ID → mod 62⁶ → base62 |
-| Cache          | Local LRU or Redis (optional)   |
-| Logging        | Uber zap (structured JSON)      |
+| Concern    | Choice                           |
+| ---------- | -------------------------------- |
+| Language   | Go 1.22+                         |
+| HTTP       | Fiber v2                         |
+| DI         | Uber fx                          |
+| Database   | PostgreSQL 16 (pgx/v5 + pgxpool) |
+| Migrations | golang-migrate                   |
+| Config     | spf13/viper + joho/godotenv      |
+| Short code | Snowflake ID → mod 62⁶ → base62  |
+| Cache      | Local LRU or Redis (optional)    |
+| Logging    | Uber zap (structured JSON)       |
 
 ---
 
@@ -107,17 +133,18 @@ curl -X POST http://localhost:8080/encode \
 ```
 
 **Response 200**
+
 ```json
 { "short_url": "http://localhost:8080/GeAi9K" }
 ```
 
 **Errors**
 
-| Status | Body                                 | Reason                        |
-| ------ | ------------------------------------ | ----------------------------- |
-| 400    | `{"error": "invalid request body"}`  | Malformed JSON                |
-| 400    | `{"error": "invalid URL: ..."}`      | Non-HTTP/S scheme, > 2048 chars |
-| 500    | `{"error": "internal error"}`        | Unexpected server failure     |
+| Status | Body                                | Reason                          |
+| ------ | ----------------------------------- | ------------------------------- |
+| 400    | `{"error": "invalid request body"}` | Malformed JSON                  |
+| 400    | `{"error": "invalid URL: ..."}`     | Non-HTTP/S scheme, > 2048 chars |
+| 500    | `{"error": "internal error"}`       | Unexpected server failure       |
 
 ---
 
@@ -138,17 +165,18 @@ Both the full short URL and the bare code are accepted:
 ```
 
 **Response 200**
+
 ```json
 { "url": "https://codesubmit.io/library/react" }
 ```
 
 **Errors**
 
-| Status | Body                              | Reason             |
-| ------ | --------------------------------- | ------------------ |
-| 400    | `{"error": "invalid request body"}` | Malformed JSON    |
-| 404    | `{"error": "short URL not found"}` | Code doesn't exist |
-| 500    | `{"error": "internal error"}`     | Unexpected failure |
+| Status | Body                                | Reason             |
+| ------ | ----------------------------------- | ------------------ |
+| 400    | `{"error": "invalid request body"}` | Malformed JSON     |
+| 404    | `{"error": "short URL not found"}`  | Code doesn't exist |
+| 500    | `{"error": "internal error"}`       | Unexpected failure |
 
 ---
 
@@ -258,13 +286,13 @@ Because multiple Snowflake IDs can map to the same value after `mod 62^6`, colli
 
 ### Horizontal scaling
 
-| Concern               | Current state                | Production path                                                                    |
-| --------------------- | ---------------------------- | ---------------------------------------------------------------------------------- |
-| Multiple app instances | Single node (node ID = 1)   | Assign a unique Snowflake node ID (0–1023) per instance via env var                |
-| Write throughput      | Single Postgres primary       | PgBouncer pooling → read replicas for decode → eventually Citus or partitioning    |
-| Decode hot path       | Optional local LRU or Redis  | Redis cluster with short TTL; LRU warms from DB on cache miss                      |
-| Migrations            | Run at startup               | Gate behind a leader-election lock or a separate migration job in CI/CD             |
-| Rate limiting         | Not yet implemented           | Redis-backed token bucket (e.g., `go-redis/v9` + sliding window) per IP            |
+| Concern                | Current state               | Production path                                                                 |
+| ---------------------- | --------------------------- | ------------------------------------------------------------------------------- |
+| Multiple app instances | Single node (node ID = 1)   | Assign a unique Snowflake node ID (0–1023) per instance via env var             |
+| Write throughput       | Single Postgres primary     | PgBouncer pooling → read replicas for decode → eventually Citus or partitioning |
+| Decode hot path        | Optional local LRU or Redis | Redis cluster with short TTL; LRU warms from DB on cache miss                   |
+| Migrations             | Run at startup              | Gate behind a leader-election lock or a separate migration job in CI/CD         |
+| Rate limiting          | Not yet implemented         | Redis-backed token bucket (e.g., `go-redis/v9` + sliding window) per IP         |
 
 ### Code space exhaustion
 
