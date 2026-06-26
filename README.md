@@ -183,7 +183,6 @@ Both the full short URL and the bare code are accepted:
 | 404    | `{"error": "short URL not found"}`  | Code doesn't exist |
 | 500    | `{"error": "internal error"}`       | Unexpected failure |
 
-
 ![DECODE](docs/test-decode.png)
 
 ---
@@ -314,14 +313,14 @@ That's a fair that I assign some tasks for AI to help work on this faster and mo
 
 ### My Tasks
 
-- Design structure of project 
-- Plan step by step the project 
+- Design structure of project
+- Plan step by step the project
 - Pick up teck stack for project
-- Set up the source from **Config**, **Handler**, **Infra**, **Reposibities**, **Services**, **Utils**, **Logging**, .
+- Set up the source from **Config**, **Handler**, **Infra**, **Reposibities**, **Services**, **Utils**, **Logging**, **Database**.
 - Implement the core functions such as `/encode` and `/decode` and `/redirect`
 - Design Data Model and Migration.
-- Plan & apply solutions for the problems such as thundering-herd (singleflight) and cache and URL validation. 
-- Write STEPS.md mannually to share my thoughts.
+- Plan & apply solutions for the problems such as `thundering-herd` (singleflight) and `cache` and `URL validation`.
+- Write *STEPS.md* mannually to share my thoughts.
 
 ### AI Assignments
 
@@ -330,10 +329,11 @@ I have a collaboration with AI some aspects in this project
 - Generate testcase and all tests.
 - Using mockery to mock up repositories and code generator helpers.
 - Generate UI and page handler to interact with logic easily.
-- Improve Security for UI and for Endpoints like CSP, XSS, SSRF Headers. 
+- Improve Security for UI and for Endpoints like CSP, XSS, SSRF Headers.
 - Add config.yaml instead of written by hand.
-- Generate Dockerfile and docker compose 
+- Generate Dockerfile and docker compose
 - Build Makefile
-- Write README.md based on STEPS.md
+- Write *README.md* based on *STEPS.md*
+- Generate Error Definition and Description
 
-That's some tedious scopes, I think I can hand over AI work for me. 
+That's some tedious scopes, I think I can hand over AI work for me.
