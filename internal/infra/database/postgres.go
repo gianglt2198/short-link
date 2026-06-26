@@ -32,7 +32,7 @@ func NewPool(p PoolParams) (*pgxpool.Pool, error) {
 
 	cfg.ConnConfig.Tracer = &tracelog.TraceLog{
 		Logger:   p.Logger,
-		LogLevel: tracelog.LogLevelDebug,
+		LogLevel: tracelog.LogLevelInfo,
 	}
 
 	poolCfg := p.Config.Database.Pool

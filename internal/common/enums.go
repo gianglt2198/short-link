@@ -1,5 +1,9 @@
 package common
 
+const (
+	MAX_RETRIES = 3
+)
+
 type KeyType string
 
 const (

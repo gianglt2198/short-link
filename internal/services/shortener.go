@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/sync/singleflight"
 
+	"github.com/gianglt1/short-link/internal/common"
 	"github.com/gianglt1/short-link/internal/config"
 	"github.com/gianglt1/short-link/internal/domain"
 	"github.com/gianglt1/short-link/internal/helpers"
@@ -18,8 +19,6 @@ import (
 	"github.com/gianglt1/short-link/internal/repositories"
 	"github.com/gianglt1/short-link/internal/utils"
 )
-
-const maxRetries = 3
 
 type (
 	shortenerService struct {
@@ -70,7 +69,7 @@ func (s *shortenerService) Encode(ctx context.Context, rawURL string) (domain.Li
 			return domain.Link{}, err
 		}
 
-		for i := 0; i < maxRetries; i++ {
+		for i := 0; i < common.MAX_RETRIES; i++ {
 			code, err := s.gen.Generate()
 			if err != nil {
 				return domain.Link{}, fmt.Errorf("generate code: %w", err)
@@ -86,7 +85,7 @@ func (s *shortenerService) Encode(ctx context.Context, rawURL string) (domain.Li
 			return link, nil
 		}
 
-		return domain.Link{}, fmt.Errorf("failed to generate unique code after %d retries", maxRetries)
+		return domain.Link{}, fmt.Errorf("failed to generate unique code after %d retries", common.MAX_RETRIES)
 	})
 	if err != nil {
 		return domain.Link{}, err

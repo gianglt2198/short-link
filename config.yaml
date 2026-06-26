@@ -10,6 +10,11 @@ database:
     max_conns: 20
     min_conns: 2
 
+logging:
+  skip_paths:
+    - /
+    - /robots.txt
+
 cache:
   enabled: false
   type: "local"

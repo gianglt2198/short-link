@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"go.uber.org/fx"
 
+	"github.com/gianglt1/short-link/internal/config"
 	"github.com/gianglt1/short-link/internal/infra/logging"
 	"github.com/gianglt1/short-link/internal/middlewares"
 )
@@ -53,10 +54,10 @@ func RegisterRoutes(app *fiber.App, h *Handler) {
 	app.Get("/:code", h.link.Redirect)
 }
 
-func NewApp(log *logging.Logger) *fiber.App {
+func NewApp(log *logging.Logger, cfg *config.Config) *fiber.App {
 	app := fiber.New(fiber.Config{BodyLimit: 4 * 1024})
 	app.Use(middlewares.RequestIDMiddleware)
-	app.Use(middlewares.LoggerMiddleware(log))
+	app.Use(middlewares.LoggerMiddleware(log, cfg))
 	app.Use(func(c *fiber.Ctx) error {
 		c.Set("Content-Security-Policy", cspHeader)
 		c.Set("X-Frame-Options", "DENY")

@@ -14,6 +14,11 @@ type Config struct {
 	Server   ServerConfig   `mapstructure:"server"`
 	Database DatabaseConfig `mapstructure:"database"`
 	Cache    CacheConfig    `mapstructure:"cache"`
+	Logging  LoggingConfig  `mapstructure:"logging"`
+}
+
+type LoggingConfig struct {
+	SkipPaths []string `mapstructure:"skip_paths"`
 }
 
 type ServerConfig struct {
