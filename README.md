@@ -8,7 +8,7 @@ A URL shortening service built in Go. Encodes long URLs into 6-character short c
 
 Check out [LINK DEMO](https://shortlink.gliam.me) for reaching the web.
 
-![website](docs/website.png)
+https://github.com/user-attachments/assets/bde17b38-a48d-478a-b93b-37dc497c88b8
 
 ---
 
