@@ -66,6 +66,9 @@ func (h *LinkHandler) Decode(c *fiber.Ctx) error {
 	}
 
 	code := utils.ExtractCode(req.ShortURL, h.cfg.Server.BaseURL)
+	if !utils.IsValidCode(code) {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "short URL not found"})
+	}
 	h.logger.GetWrappedLogger(ctx).Info("decode: request received", zap.String("code", code))
 
 	link, err := h.svc.Decode(ctx, code)
@@ -85,6 +88,9 @@ func (h *LinkHandler) Redirect(c *fiber.Ctx) error {
 	ctx := c.Context()
 	code := c.Params("code")
 
+	if !utils.IsValidCode(code) {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "short URL not found"})
+	}
 	h.logger.GetWrappedLogger(ctx).Info("redirect: request received", zap.String("code", code))
 
 	link, err := h.svc.Decode(ctx, code)

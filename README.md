@@ -146,6 +146,8 @@ curl -X POST http://localhost:8080/encode \
 | 400    | `{"error": "invalid URL: ..."}`     | Non-HTTP/S scheme, > 2048 chars |
 | 500    | `{"error": "internal error"}`       | Unexpected server failure       |
 
+![ENCODE](docs/test-encode.png)
+
 ---
 
 ### POST /decode
@@ -177,6 +179,9 @@ Both the full short URL and the bare code are accepted:
 | 400    | `{"error": "invalid request body"}` | Malformed JSON     |
 | 404    | `{"error": "short URL not found"}`  | Code doesn't exist |
 | 500    | `{"error": "internal error"}`       | Unexpected failure |
+
+
+![DECODE](docs/test-decode.png)
 
 ---
 

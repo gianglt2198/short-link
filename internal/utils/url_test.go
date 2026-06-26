@@ -51,6 +51,34 @@ func TestValidateURL_ErrorType(t *testing.T) {
 	}
 }
 
+func TestIsValidCode(t *testing.T) {
+	tests := []struct {
+		name  string
+		code  string
+		valid bool
+	}{
+		{"valid lowercase", "abcdef", true},
+		{"valid uppercase", "ABCDEF", true},
+		{"valid digits", "012345", true},
+		{"valid mixed", "aB3xY9", true},
+		{"too short", "abc12", false},
+		{"too long", "abc1234", false},
+		{"empty", "", false},
+		{"contains dot", "abc.ef", false},
+		{"contains slash", "abc/ef", false},
+		{"robots.txt path param", "robots.txt", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := IsValidCode(tt.code)
+			if got != tt.valid {
+				t.Errorf("IsValidCode(%q) = %v, want %v", tt.code, got, tt.valid)
+			}
+		})
+	}
+}
+
 func TestExtractCode(t *testing.T) {
 	const base = "http://localhost:8080"
 

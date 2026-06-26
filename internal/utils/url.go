@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/gianglt1/short-link/internal/common"
 	"github.com/gianglt1/short-link/internal/domain"
 )
 
@@ -21,6 +22,30 @@ func ValidateURL(rawURL string) error {
 		return domain.ErrInvalidURL
 	}
 	return nil
+}
+
+const codeLen = 6
+
+var validCode = func() [256]bool {
+	var t [256]bool
+	for i := range len(common.ALPHABET) {
+		t[common.ALPHABET[i]] = true
+	}
+	return t
+}()
+
+// IsValidCode reports whether s is a well-formed short code:
+// exactly 6 characters, all from the base62 alphabet [0-9A-Za-z].
+func IsValidCode(s string) bool {
+	if len(s) != codeLen {
+		return false
+	}
+	for i := range len(s) {
+		if !validCode[s[i]] {
+			return false
+		}
+	}
+	return true
 }
 
 // ExtractCode strips the base URL prefix if present, then returns the last path
