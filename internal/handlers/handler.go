@@ -56,6 +56,7 @@ func RegisterRoutes(app *fiber.App, h *Handler) {
 
 func NewApp(log *logging.Logger, cfg *config.Config) *fiber.App {
 	app := fiber.New(fiber.Config{BodyLimit: 4 * 1024})
+	app.Use(middlewares.AllowlistMiddleware)
 	app.Use(middlewares.RequestIDMiddleware)
 	app.Use(middlewares.LoggerMiddleware(log, cfg))
 	app.Use(func(c *fiber.Ctx) error {
