@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"regexp"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -16,6 +15,12 @@ var allowedPOST = map[string]bool{
 	"/expand":  true,
 }
 
+var allowedGET = map[string]bool{
+	"/":        true,
+	"/app.js":  true,
+	"/app.css": true,
+}
+
 // AllowlistMiddleware blocks any request not on the known exposed surface.
 // GET requests pass through to let the embedded filesystem middleware handle
 // static assets; single-segment paths are validated as 6-char base62 codes
@@ -26,7 +31,7 @@ func AllowlistMiddleware(c *fiber.Ctx) error {
 
 	switch method {
 	case fiber.MethodGet:
-		if path != "/" && isSingleSegment(path) && !codePattern.MatchString(path[1:]) {
+		if !allowedGET[path] && !codePattern.MatchString(path[1:]) {
 			return c.SendStatus(fiber.StatusNotFound)
 		}
 	case fiber.MethodPost:
@@ -38,8 +43,4 @@ func AllowlistMiddleware(c *fiber.Ctx) error {
 	}
 
 	return c.Next()
-}
-
-func isSingleSegment(path string) bool {
-	return len(path) > 1 && path[0] == '/' && !strings.Contains(path[1:], "/")
 }
